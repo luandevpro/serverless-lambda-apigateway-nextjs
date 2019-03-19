@@ -1,10 +1,21 @@
-const mongoose       = requier("mongoose")
+const mongoose       = require("mongoose")
 const { ObjectId }   = mongoose.Schema
 const passportLocalMongoose = require("passport-local-mongoose")
+const mongodbErrorHandler = require("mongoose-mongodb-errors")
 
 const userSchema = new mongoose.Schema({
-   email: String,
-   name: String,
+   email: {
+      type: String,
+      required: "Email is required",
+      unique: true
+   },
+   name: {
+      type: String,
+      required: "Name is required",
+      minlength: 4,
+      maxlength: 10,
+      unique: true
+   },
    avatar: {
       type: String,
       default: "/static/images/profile-image.png"
@@ -27,5 +38,6 @@ const autoPopulateFollowingAndFollowers = function(next){
 userSchema.pre("findOne" , autoPopulateFollowingAndFollowers)
 
 userSchema.plugin(passportLocalMongoose, { usernameField: "email" });
+userSchema.plugin(mongodbErrorHandler);
 
-module.exports = mongoose.model("user", userSchema)
+module.exports = User = mongoose.model("user", userSchema)

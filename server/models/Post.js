@@ -31,4 +31,4 @@ postSchema
 
 postSchema.index({ postedBy: 1, createdAt: 1 });
 
-module.exports = mongoose.model("post",postSchema)
+module.exports = Post = mongoose.model("post",postSchema)

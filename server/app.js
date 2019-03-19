@@ -1,7 +1,9 @@
 const express   = require('express')
 const path      = require('path')
 const session   = require("express-session")
+const expressValidator = require("express-validator")
 const mongoose  = require("mongoose")
+const passport  = require("passport")
 const logger    = require("morgan")
 const MongoStore= require("connect-mongo")(session)
 const next      = require('next')
@@ -13,6 +15,7 @@ const port      = parseInt(process.env.PORT, 10) || 3000
 const app       = next({ dev })
 const handle    = app.getRequestHandler()
 const server    = express()
+const routes    = require("./routes")
 
 mongoose
    .connect(process.env.MONGO_URI,{
@@ -22,12 +25,13 @@ mongoose
    })
    .then(() => console.log("DB connected"))
    .catch(err => console.log(`DB connection error: ${err.message}`));
-
+   
 app.prepare().then(() => {
    server.use('/_next', express.static(path.join(__dirname, '.next')))
    /* Body Parser built-in to Express as of version 4.16 */
    server.use(express.json());
-
+   server.use(expressValidator());
+   
 
   const sessionConfig = {
     name: "next-connect.sid",
@@ -52,7 +56,9 @@ app.prepare().then(() => {
    }
    /* Apply our session configuration to express-session */
    server.use(session(sessionConfig));
-
+   /* Add passport middleware to set passport up */
+   server.use(passport.initialize());
+   server.use(passport.session());
      /* morgan for request logging from client
    - we use skip to ignore static files from _next folder */
    server.use(
@@ -60,6 +66,12 @@ app.prepare().then(() => {
       skip: req => req.url.includes("_next")
       })
    );
+   server.use("/" , routes)
+   /* Error handling from async / await functions */
+   server.use((err, req, res, next) => {
+      const { status = 500, message } = err;
+      res.status(status).json(message);
+   });
    server.get('*', (req, res) => {
      return handle(req, res)
    })
