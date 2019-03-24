@@ -3,6 +3,7 @@ const path      = require('path')
 const session   = require("express-session")
 const expressValidator = require("express-validator")
 const mongoose  = require("mongoose")
+const cors      = require("cors")
 const passport  = require("passport")
 const logger    = require("morgan")
 const MongoStore= require("connect-mongo")(session)
@@ -16,6 +17,7 @@ const app       = next({ dev })
 const handle    = app.getRequestHandler()
 const server    = express()
 const routes    = require("./routes")
+require("./config/passport-local")
 
 mongoose
    .connect(process.env.MONGO_URI,{
@@ -31,7 +33,6 @@ app.prepare().then(() => {
    /* Body Parser built-in to Express as of version 4.16 */
    server.use(express.json());
    server.use(expressValidator());
-   
 
   const sessionConfig = {
     name: "next-connect.sid",
@@ -49,13 +50,18 @@ app.prepare().then(() => {
       httpOnly: true,
       maxAge: 1000 * 60 * 60 * 24 * 14 // expires in 14 days
     }
-  };
-   if (!dev) {
-      sessionConfig.cookie.secure = true; // serve secure cookies in production environment
-      server.set("trust proxy", 1); // trust first proxy
-   }
+   };
+   // if (!dev) {
+   //    sessionConfig.cookie.secure = true; // serve secure cookies in production environment
+   //    server.set("trust proxy", 1); // trust first proxy
+   // }
    /* Apply our session configuration to express-session */
    server.use(session(sessionConfig));
+   
+   server.use((req, res, next) => {
+      res.locals.user = req.user || null;
+      next();
+   });
    /* Add passport middleware to set passport up */
    server.use(passport.initialize());
    server.use(passport.session());
@@ -66,7 +72,10 @@ app.prepare().then(() => {
       skip: req => req.url.includes("_next")
       })
    );
-   server.use("/" , routes)
+   server.use("/" , cors({
+      origin: 'http://localhost:3000',
+      optionsSuccessStatus: 200 
+   }) ,routes)
    /* Error handling from async / await functions */
    server.use((err, req, res, next) => {
       const { status = 500, message } = err;

@@ -1,4 +1,5 @@
 const User = require("../models/User");
+   passport= require("passport");
 
 exports.validateSignup = (req,res,next) => {
    req.sanitizeBody("name")
@@ -36,4 +37,27 @@ exports.signup = async (req,res) => {
       }
       res.json(user)
    })
+}
+
+exports.signin = (req,res,next) => {
+   passport.authenticate("local", (err,user,info) => {
+      if(err){
+         return res.status(500).json(err.message)
+      }
+      if(!user){
+         return res.status(400).json(info.message)
+      }
+      req.logIn(user, (err) => {
+         if(err){
+            return res.status(500).json(err.message)
+         }
+         res.json(user)
+      })
+   })(req,res,next)
+}
+
+exports.signout = (req,res) => {
+   res.clearCookie("next-connect.sid");
+   req.logout();
+   res.json({message: "You must login"})
 }
