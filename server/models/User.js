@@ -30,8 +30,8 @@ const userSchema = new mongoose.Schema({
 
 
 const autoPopulateFollowingAndFollowers = function(next){
-   this.populate("following" , "_id name user");
-   this.populate("followers" , "_id name user");
+   this.populate("following" , "_id name avatar");
+   this.populate("followers" , "_id name avatar");
    next();
 }
 

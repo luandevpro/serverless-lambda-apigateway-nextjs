@@ -3,8 +3,6 @@ const express  = require("express")
 authController = require("../controllers/authController");     
 userController = require("../controllers/userController");     
 
-
-// route post user signup
 router
    .route("/api/auth/signup")
    .post(authController.validateSignup,authController.signup)   
@@ -27,6 +25,22 @@ router
    .route("/api/users/:userId")
    .get(userController.getUserCurrent)
    .delete(userController.checkAuth,userController.deleteUser)
+
+router
+   .route("/api/users/follow")
+   .put(
+      userController.checkAuth, 
+      userController.addFollowing, 
+      userController.addFollowers
+   )
+
+router
+   .route("/api/users/unfollow")
+   .put(
+      userController.checkAuth, 
+      userController.deleteFollowing, 
+      userController.deleteFollowers
+   )
 
 router
    .route("/api/users/profile/:userId")

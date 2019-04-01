@@ -52,3 +52,41 @@ exports.getUserProfile = (req,res) => {
       res.json(req.profile)
    }
 }
+
+exports.addFollowing = async (req,res,next) => {
+   const { followId } = req.body;
+   await User.findOneAndUpdate(
+      {_id: req.user._id},
+      {$push: {following: followId}}
+   );
+   next();
+}
+   
+exports.addFollowers = async (req,res) => {
+   const { followId } = req.body
+   const user = await User.findByIdAndUpdate(
+      {_id: followId},
+      {$push: {followers: req.user._id}},
+      {new: true}
+   )
+   res.json(user)
+}
+
+exports.deleteFollowing = async (req,res,next) => {
+   const { followId } = req.body;
+   await User.findOneAndUpdate(
+      {_id: req.user._id},
+      {$pull: {following: followId}}
+   );
+   next();
+}
+   
+exports.deleteFollowers = async (req,res) => {
+   const { followId } = req.body
+   const user = await User.findByIdAndUpdate(
+      {_id: followId},
+      {$pull: {followers: req.user._id}},
+      {new: true}
+   )
+   res.json(user)
+}
